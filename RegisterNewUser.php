@@ -3,10 +3,10 @@
   
   
   // Test data here, but you would replace with your User Registration Form data processing
-  $firstName = 'Joe';
+  $firstName = 'Make';
   $lastName  = 'Programmer';
-  $eMail     = 'Joe.Programmer@fullerton.edu';
-  $userName  = strtolower('JProg');  // design decision: usernames are case insensitive
+  $eMail     = 'testemailforcpsc431@gmail.com';
+  $userName  = strtolower('MProg');  // design decision: usernames are case insensitive
   $password  = 'SomethingClever';
   // Role will be defaulted in DB, do not set here
 

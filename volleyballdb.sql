@@ -1,3 +1,4 @@
+/*This is the database from his athentication solution, the other in Setup Folder is the HW3 solution sql file*/
 DROP DATABASE IF EXISTS VolleyBall;
 CREATE DATABASE VolleyBall;
 
