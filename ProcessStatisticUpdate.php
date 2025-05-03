@@ -1,53 +1,74 @@
 <?php
-require_once 'config.php';
-require_once "$PROTECTED_PATH/Authenticate_and_Connect.php";
-$db = authenticate_and_connect();
+require_once('config.php');
 
-try
-{
-  $playerID = (int) $_POST['name_ID'];  // Database unique ID for player's name
+$playerID = (int)$_POST['name_ID'];
+$gameID = (int)$_POST['game_ID'];
 
+if ($playerID !== 0 && $gameID !== 0) {
+    require_once('Adaptation.php');
+    @$db = new mysqli(DATA_BASE_HOST, USER_NAME, USER_PASSWORD, DATA_BASE_NAME);
 
-  if( $playerID != 0 )  // Verify required fields are present
-  {
-    require_once('PlayerStatistic.php');
+    if ($db->connect_errno != 0) {
+        echo "Failed to connect to database. Try again.";
+    } elseif ($_POST["action"] === "Add/Modify Statistic") {
+        require_once('PlayerStatistic.php');
 
-    // Create new object delegating parameter sanitization to class constructor
-    $playerStat = new PlayerStatistic( NULL, $_POST['time'], $_POST['points'], $_POST['assists'], $_POST['rebounds']);
+        $playerStat = new PlayerStatistic(
+            NULL,
+            $_POST['kills'],
+            $_POST['blocks'],
+            $_POST['serving_aces'],
+            $_POST['assists'],
+            $_POST['digs']
+        );
 
-    $query = "INSERT INTO Statistics SET
-                Player          = ?,
-                PlayingTimeMin  = ?,
-                PlayingTimeSec  = ?,
-                Points          = ?,
-                Assists         = ?,
-                Rebounds        = ?";
+        // Check if a stat record already exists for this player and game
+        $check = $db->prepare("SELECT stat_id FROM PlayerStats WHERE player_id = ? AND game_id = ?");
+        $check->bind_param('ii', $playerID, $gameID);
+        $check->execute();
+        $check->store_result();
 
-    @$stmt = $db->prepare($query);
+        if ($check->num_rows > 0) {
+            // Update existing record
+            $query = "UPDATE PlayerStats SET kills = ?, blocks = ?, serving_aces = ?, assists = ?, digs = ? WHERE player_id = ? AND game_id = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param(
+                'iiiiiii',
+                $playerStat->kills(),
+                $playerStat->blocks(),
+                $playerStat->serving_aces(),
+                $playerStat->assists(),
+                $playerStat->digs(),
+                $playerID,
+                $gameID
+            );
+        } else {
+            // Insert new stat record
+            $query = "INSERT INTO PlayerStats (
+                          game_id, player_id, kills, blocks, serving_aces, assists, digs
+                      ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param(
+                'iiiiiii',
+                $gameID,
+                $playerID,
+                $playerStat->kills(),
+                $playerStat->blocks(),
+                $playerStat->serving_aces(),
+                $playerStat->assists(),
+                $playerStat->digs()
+            );
+        }
 
-    list($minutes, $seconds) = explode(':', $playerStat->playingTime());
-    @$stmt->bind_param('dddddd', $playerID,
-                                $minutes,
-                                $seconds,
-                                $playerStat->pointsScored(),
-                                $playerStat->assists(),
-                                $playerStat->rebounds() );
-    @$stmt->execute(); // ignore errors, for now.
-  }
+        $stmt->execute();
 
-  header("Location: home_page.php");
-  exit;
-} // try block
-
-catch( mysqli_sql_exception $ex )
-{
-  printf( "Internal MySQLi Error: %s<br>In file '%s' @line %d<br>See site administrator<br>", $ex->getMessage(), $ex->getFile(), $ex->getLine() );
-  exit;
+    } elseif ($_POST["action"] === "Delete Statistic") {
+        $query = "DELETE FROM PlayerStats WHERE player_id = ? AND game_id = ?";
+        $stmt = $db->prepare($query);
+        $stmt->bind_param('ii', $playerID, $gameID);
+        $stmt->execute();
+    }
 }
 
-catch( Exception $ex )
-{
-  printf( "Internal Error: %s<br>In file '%s' @line %d<br>See site administrator<br>", $ex->getMessage(), $ex->getFile(), $ex->getLine() );
-  exit;
-}
+require('home_page.php');
 ?>

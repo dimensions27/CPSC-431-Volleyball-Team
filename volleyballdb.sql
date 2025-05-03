@@ -1,202 +1,117 @@
-/*This is the database from his athentication solution, the other in Setup Folder is the HW3 solution sql file*/
-DROP DATABASE IF EXISTS VolleyBall;
-CREATE DATABASE VolleyBall;
+SET FOREIGN_KEY_CHECKS = 0; 
 
---Role based access users
-DROP   USER IF EXISTS 'Observer'@'localhost';
-CREATE USER           'Observer'@'localhost' IDENTIFIED BY 'Password1';
-
-DROP   USER IF EXISTS 'Users'@'localhost';
-CREATE USER           'Users'@'localhost' IDENTIFIED BY 'Password2';
-
-DROP   USER IF EXISTS 'Executive Manager'@'localhost';
-CREATE USER           'Executive Manager'@'localhost' IDENTIFIED BY 'Password3';
-
---Database administration users
-DROP USER IF EXISTS 'admin'@'localhost';
-Create USER 'admin'@'localhost' IDENTIFIED BY 'Password4';
-  
-GRANT ALL PRIVILEGES ON SportsTeam.* TO 'admin'@'localhost';
-
-USE VolleyBall;
+DROP DATABASE IF EXISTS volleyball_db;
+CREATE DATABASE IF NOT EXISTS volleyball_db;
 
 
+DROP USER IF EXISTS 'phpWebEngine';
+GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON volleyball_db.* TO 'phpWebEngine' IDENTIFIED BY '!_phpWebEngine';
+
+FLUSH PRIVILEGES;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+USE volleyball_db;
+
+
+-- TEAM STUFF
+CREATE TABLE Teams (
+  team_id INT AUTO_INCREMENT PRIMARY KEY,
+  team_name VARCHAR(100),
+  division  VARCHAR(100),
+  coach_name VARCHAR(100),
+  team_rank INT DEFAULT NULL
+);
+
+INSERT INTO Teams (team_name, division, coach_name, team_rank) VALUES
+('CSUF Titans', 'D1', 'Coach Elephant', 3),
+('UCSD Tritons', 'D1', 'Coach Diego', 5);
+
+-- ROLE STUFF
 CREATE TABLE Roles (
-    ID_Rold     TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    roleName    VARCHAR(30) NOT NULL UNIQUE COMMENT 'Must match Database User'
+  role_id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(30),
+  lastModified  DATETIME          DEFAULT current_timestamp() ON UPDATE current_timestamp()
 );
 
-GRANT SELECT, INSERT, DELETE, UPDATE ON Roles TO 'Executive Manager'@'localhost';
+INSERT INTO Roles (name) VALUES
+('observer'), ('player'), ('coach'), ('manager');
 
-INSERT INTO Roles VALUES 
--- NOTE:  These values MUST match the Database Users created at the end of this script
- (1, 'Observer'),  -- DEFAULT value
- (2, 'Users'),
- (3, 'Executive Manager');
+-- USER STUFF
+CREATE TABLE Users (
+  user_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  password CHAR(60) NOT NULL,
+  role_id TINYINT UNSIGNED NOT NULL,
+  lastModified  DATETIME          DEFAULT current_timestamp() ON UPDATE current_timestamp(),
 
-CREATE TABLE UserLogin
-(
-    ID            INTEGER          UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    Name_First    VARCHAR(100),
-    Name_Last     VARCHAR(150)     NOT NULL,
-    Email         VARCHAR(250),
-    UserName      VARCHAR(100)     UNIQUE,
-    Password      CHAR(60),
-    Role          TINYINT UNSIGNED NOT NULL DEFAULT 1,
-    ts            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (Role) REFERENCES Roles(ID_Role) ON DELETE CASCADE
+  FOREIGN KEY (role_id) REFERENCES Roles(role_id)
 );
 
-GRANT select, insert, delete, update ON UserLogin TO 'Executive Manager'@'localhost';
+INSERT INTO Users (user_id, first_name, last_name, email, password, role_id) VALUES
+(1, 'Carlos', 'LopezManager', 'manager@gmail.com', '!carlos', 4),
+(2, 'Anthony', 'SturrusCoach', 'coach@gmail.com', '!sturrus', 3),
+(3, 'Anthony', 'ThorntonPlayer', 'player@gmail.com', '!thornton', 2),
+(4, 'Leon', 'NObserver', 'observer@gmail.com', '!leon', 1);
 
+-- PLAYER STUFF
+CREATE TABLE Players (
+  player_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL UNIQUE,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  team_id INT,
+  position VARCHAR(100),
+  height INT,
+  weight INT,
+  street VARCHAR(250),
+  city VARCHAR(250),
+  state VARCHAR(100),
+  country VARCHAR(100),
+  zipcode CHAR(10),
 
+  CHECK (zipcode REGEXP '(?!0{5})(?!9{5})\\d{5}(-(?!0{4})(?!9{4})\\d{4})?'),
 
-
-
-
-CREATE TABLE LeagueTeam
-( TeamID      INTEGER UNSIGNED NOT NULL AUTO_INCREMENT  PRIMARY KEY,
-  TeamName    VARCHAR(100),
-  TeamCoach   VARCHAR(100)
+  is_active BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (team_id) REFERENCES Teams(team_id),
+  FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
-GRANT         Select                 ON LeagueTeam TO 'Observer'         @'localhost';
-GRANT Insert, Select, Update, Delete ON LeagueTeam TO 'Users'            @'localhost';
-GRANT Insert, Select, Update, Delete ON LeagueTeam TO 'Executive Manager'@'localhost';
+INSERT INTO Players (user_id, first_name, last_name, team_id, position, height, weight, street, city, state, country, zipcode) VALUES
+(3, 'Anthony', 'ThorntonPlayer', 1, 'Setter', '170cm', '90kg', '123 Court St', 'Fullerton', 'CA', 'USA', '92831');
 
-
-INSERT INTO LeagueTeam VALUES
-('1','CSUF Titans', 'Deadpool'),
-('2','UCI AntEaters','Batman'),
-('3','CSULB Wildcats','Daredevil'),
-('4','UCR GreenHornets','Hulk'),
-('5','UCSD Bees','Cerci Lannister'),
-('6','UCLA Bruins','Morgan Freeman'),
-('7','CSUSB Wolfs','Joker'),
-('8','CSULA Eagles','Vin Diesel');
-
-
-
-
-
-
-CREATE TABLE GP_TeamA
-(
-  TeamID_A  INTEGER UNSIGNED  NOT NULL,
-  GameRound INTEGER    UNSIGNED  NOT NULL,
-  TeamAPoints   VARCHAR(100),
-  
-  FOREIGN KEY (TeamID_A) REFERENCES LeagueTeam(TeamID) ON DELETE CASCADE
+-- GAME STUFF
+CREATE TABLE Games (
+  game_id INT AUTO_INCREMENT PRIMARY KEY,
+  game_date DATE,
+  opponent VARCHAR(100),
+  location VARCHAR(100),
+  team_id INT,
+  result ENUM('Win', 'Loss'),
+  FOREIGN KEY (team_id) REFERENCES Teams(team_id)
 );
 
-GRANT         SELECT                 ON GP_TeamA TO 'Observer'         @'localhost';
-GRANT INSERT, SELECT, UPDATE, DELETE ON GP_TeamA TO 'Users'            @'localhost';
-GRANT INSERT, SELECT, UPDATE, DELETE ON GP_TeamA TO 'Executive Manager'@'localhost';
+INSERT INTO Games (game_date, opponent, location, team_id, result) VALUES
+('2025-04-01', 'UCLA Bruins', 'Titan Gym', 1, 'Win'),
+('2025-04-08', 'UC Irvine', 'Irvine Arena', 1, 'Loss');
 
-INSERT INTO GP_TeamA VALUES
-('1','1','50'),
-('3','1','40'),
-('5','1','70'),
-('7','1','55'),
-('1','2','70'),
-('6','2','50'),
-('1','3','20');
+-- STAT STUFF
 
-
-
-
-
-
-CREATE TABLE GP_TeamB
-(
-TeamID_B INTEGER UNSIGNED NOT NULL,
-GameRound INTEGER    UNSIGNED  NOT NULL,
-TeamBPoints VARCHAR(100),
-FOREIGN KEY (TeamID_B) REFERENCES LeagueTeam(TeamID) ON DELETE CASCADE
+CREATE TABLE PlayerStats (
+  stat_id INT AUTO_INCREMENT PRIMARY KEY,
+  game_id INT,
+  player_id INT UNSIGNED,
+  kills INT UNSIGNED DEFAULT 0,
+  blocks INT UNSIGNED DEFAULT 0,
+  serving_aces INT UNSIGNED DEFAULT 0,
+  assists INT UNSIGNED DEFAULT 0,
+  digs INT UNSIGNED DEFAULT 0,
+  FOREIGN KEY (game_id) REFERENCES Games(game_id),
+  FOREIGN KEY (player_id) REFERENCES Players(player_id)
 );
 
-GRANT         Select                 ON GP_TeamB TO 'Observer'         @'localhost';
-GRANT Insert, Select, Update, Delete ON GP_TeamB TO 'Users'            @'localhost';
-GRANT Insert, Select, Update, Delete ON GP_TeamB TO 'Executive Manager'@'localhost';
-   
-INSERT INTO GP_TeamB VALUES
-('2','1','20'),
-('4','1','35'),
-('6','1','20'),
-('8','1','25'),
-('4','2','35'),
-('7','2','30'),
-('6','3','15');
-
-
-
-
-
-
-CREATE TABLE TeamRoster
-( ID            INTEGER UNSIGNED  NOT NULL    AUTO_INCREMENT  PRIMARY KEY,
-  Name_First    VARCHAR(100),
-  Name_Last     VARCHAR(150)      NOT NULL,
-  Street        VARCHAR(250),
-  City          VARCHAR(100),
-  State         VARCHAR(100),
-  Country       VARCHAR(100),
-  ZipCode       CHAR(10),
-
-  CHECK (ZipCode REGEXP '(?!0{5})(?!9{5})\\d{5}(-(?!0{4})(?!9{4})\\d{4})?'),
-  
-  INDEX  (Name_Last),
-  UNIQUE (Name_Last, Name_First)
-);
-
-GRANT         Select                 ON TeamRoster TO 'Observer'         @'localhost';
-GRANT Insert, Select, Update, Delete ON TeamRoster TO 'Users'            @'localhost';
-GRANT Insert, Select, Update, Delete ON TeamRoster TO 'Executive Manager'@'localhost';
-
-INSERT INTO TeamRoster VALUES
-('100', 'Donald',               'Duck',    '1313 S. Harbor Blvd.',    'Anaheim',            'CA',            'USA',     '92808-3232'),
-('101', 'Daisy',                'Duck',    '1180 Seven Seas Dr.',     'Lake Buena Vista',   'FL',            'USA',     '32830'),
-('102', 'Mickey',               'Mouse',   '1313 S. Harbor Blvd.',    'Anaheim',            'CA',            'USA',     '92808-3232'),
-('103', 'Pluto',                'Dog',     '1313 S. Harbor Blvd.',    'Anaheim',            'CA',            'USA',     '92808-3232'),
-
-('104', 'Scrooge',              'McDuck',  '1180 Seven Seas Dr.',     'Lake Buena Vista',   'FL',            'USA',     '32830'),
-('105', 'Huebert (Huey)',       'Duck',    '1110 Seven Seas Dr.',     'Lake Buena Vista',   'FL',            'USA',     '32830'),
-('106', 'Deuteronomy (Dewey)',  'Duck',    '1110 Seven Seas Dr.',     'Lake Buena Vista',   'FL',            'USA',     '32830'),
-('107', 'Louie',                'Duck',    '1110 Seven Seas Dr.',     'Lake Buena Vista',   'FL',            'USA',     '32830'),
-('108', 'Phooey',               'Duck',    '1-1 Maihama Urayasu',     'Chiba Prefecture',   'Disney Tokyo',  'Japan',   NULL),
-
-('109', 'Della',                'Duck',    '77700 Boulevard du Parc', 'Coupvray',           'Disney Paris',  'France',  NULL);
-
-
-
-
-
-
-CREATE TABLE Statistics
-(
-  ID                INTEGER    UNSIGNED  NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-  Player            INTEGER    UNSIGNED  NOT NULL,
-  PlayingTimeMin    TINYINT(2) UNSIGNED  DEFAULT 0 COMMENT 'Two 20-minute halves',
-  PlayingTimeSec    TINYINT(2) UNSIGNED  DEFAULT 0,
-  Points            TINYINT    UNSIGNED  DEFAULT 0,
-  Assists           TINYINT    UNSIGNED  DEFAULT 0,
-  Rebounds          TINYINT    UNSIGNED  DEFAULT 0,
-
-  FOREIGN KEY (Player) REFERENCES TeamRoster(ID) ON DELETE CASCADE,
-
-  CHECK((PlayingTimeMin < 40 AND PlayingTimeSec < 60) OR 
-        (PlayingTimeMin = 40 AND PlayingTimeSec = 0 ))
-);
-
-GRANT         Select                 ON Statistics TO 'Observer'         @'localhost';
-GRANT Insert, Select, Update, Delete ON Statistics TO 'Users'            @'localhost';
-GRANT Insert, Select, Update, Delete ON Statistics TO 'Executive Manager'@'localhost';
-
-INSERT INTO Statistics VALUES
-('17', '100', '35', '12', '47', '11', '21'),
-('18', '102', '13', '22', '13', '01', '03'),
-('19', '103', '10', '00', '18', '02', '04'),
-('20', '107', '02', '45', '09', '01', '02'),
-('21', '102', '15', '39', '26', '03', '07'),
-('22', '100', '29', '47', '27', '09', '08');
+INSERT INTO PlayerStats (game_id, player_id, kills, blocks, serving_aces, assists, digs) VALUES
+(1, 1, 12, 3, 2, 8, 10),
+(2, 1, 8, 1, 1, 5, 7);
