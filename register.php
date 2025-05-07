@@ -25,8 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($check->num_rows > 0) {
             $message = "An account with this email already exists.";
         } else {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
             $stmt = $db->prepare("INSERT INTO Users (first_name, last_name, email, password, role_id) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssi", $first, $last, $email, $password, $role);
+            $stmt->bind_param("ssssi", $first, $last, $email, $hashedPassword, $role);
+
             if ($stmt->execute()) {
                 header("Location: login.php");
                 exit();
@@ -34,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $message = "Registration failed. Please try again.";
             }
         }
+
+        $check->close();
+        $db->close();
     }
 }
 ?>

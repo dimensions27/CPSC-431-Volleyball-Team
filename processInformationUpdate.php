@@ -15,7 +15,6 @@ $height      = isset($_POST['height']) ? (int)$_POST['height'] : null;
 $weight      = isset($_POST['weight']) ? (int)$_POST['weight'] : null;
 $team_id     = isset($_POST['team_id']) ? (int)$_POST['team_id'] : null;
 
-// Set empty fields to null
 foreach (['first_name', 'last_name', 'street', 'city', 'state', 'country', 'zipCode'] as $field) {
     if (empty($$field)) $$field = null;
 }
@@ -43,7 +42,7 @@ if (!empty($last_name)) {
             $checkStmt->store_result();
 
             if ($checkStmt->num_rows > 0) {
-                // Update existing player
+                // update existing player
                 $query = "UPDATE Players SET
                             street = ?, city = ?, state = ?, country = ?, zipcode = ?,
                             height = ?, weight = ?, team_id = ?
@@ -56,8 +55,8 @@ if (!empty($last_name)) {
                 );
                 $stmt->execute();
             } else {
-                // Create new user
-                $role_id = 2; // Player role
+                // create a new user
+                $role_id = 2; //automatic role (player)
                 $email = strtolower($first_name . "." . $last_name . "@example.com");
                 $password = password_hash("changeme123", PASSWORD_DEFAULT);
 
