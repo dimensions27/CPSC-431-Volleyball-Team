@@ -30,7 +30,11 @@ if (!empty($last_name)) {
     }
 
     if ($_POST["action"] == "Add/Modify Name and Address") {
-        if (!empty($first_name) && !empty($last_name)) {
+        if (!empty($first_name) && !empty($last_name) &&
+        !empty($street) && !empty($city) && !empty($state) &&
+        !empty($country) && !empty($zipCode) &&
+        $height !== null && $weight !== null &&
+        $team_id !== null) {
             // Check if player exists
             $checkExistence = "SELECT player_id FROM Players WHERE first_name = ? AND last_name = ?";
             $checkStmt = $db->prepare($checkExistence);

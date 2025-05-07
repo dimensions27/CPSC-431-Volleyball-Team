@@ -38,7 +38,7 @@ if (isset($_POST['name']) && isset($_POST['password'])) {
 if (isset($_POST['observer'])) {
     $_SESSION['username'] = "observer";
     $_SESSION['role_id'] = 1;
-    header("Location: observer_view.php");
+    header("Location: home_page.php");
     exit();
 }
 ?>
@@ -47,21 +47,24 @@ if (isset($_POST['observer'])) {
 <html>
 <head>
     <title>Login - Volleyball Stats</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>Login</h2>
-    <form method="post" action="login.php">
-        <p><label>Email:</label>
-        <input type="text" name="name" required></p>
-        <p><label>Password:</label>
-        <input type="password" name="password" required></p>
-        <p><button type="submit">Log In</button></p>
-    </form>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="post" action="login.php">
+            <p><label>Email:</label>
+            <input type="text" name="name" required></p>
+            <p><label>Password:</label>
+            <input type="password" name="password" required></p>
+            <p><button type="submit">Log In</button></p>
+        </form>
 
-    <form method="post">
-        <button type="submit" name="observer">Just want to view stats (Observer)</button>
-    </form>
+        <form method="post">
+            <button type="submit" name="observer">Just want to view stats (Observer)</button>
+        </form>
 
-    <p><a href="register.php">Create an account</a></p>
+        <p><a href="register.php">Create an account</a></p>
+    </div>
 </body>
 </html>

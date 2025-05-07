@@ -13,6 +13,7 @@ require_once('config.php');
 <html>
 <head>
   <title>CSUF Volleyball</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <h1 style="text-align:center">Cal State Fullerton Volleyball Statistics</h1>
@@ -63,22 +64,28 @@ require_once('config.php');
     }
   ?>
 
-  <!-- Top Section: Side-by-Side Forms -->
-  <div style="display: flex; justify-content: space-between; gap: 40px; padding: 20px;">
+  <!-- Manager can see everything -->
+  <?php if ($_SESSION['role_id'] == 4): ?>
+    <div style="display: flex; justify-content: space-between; gap: 40px; padding: 20px;">
+  <?php else: ?>
+    <div style="display: flex; justify-content: center; padding: 20px;">
+  <?php endif; ?>
+
+    <?php if ($_SESSION['role_id'] != 1 && $_SESSION['role_id'] == 2 || $_SESSION['role_id'] == 4): ?>
     <!-- Player Info Form -->
-    <div style="flex: 1; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #f0f8ff;">
+    <div style="flex: 1; max-width: 600px; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #f0f8ff;">
       <h2 style="text-align:center;">Player Info Form</h2>
       <form action="processInformationUpdate.php" method="post">
-        <table>
-          <tr><td>First Name:</td><td><input type="text" name="first_name"></td></tr>
-          <tr><td>Last Name:</td><td><input type="text" name="last_name"></td></tr>
-          <tr><td>Street:</td><td><input type="text" name="street"></td></tr>
-          <tr><td>City:</td><td><input type="text" name="city"></td></tr>
-          <tr><td>State:</td><td><input type="text" name="state"></td></tr>
-          <tr><td>Country:</td><td><input type="text" name="country"></td></tr>
-          <tr><td>Zip Code:</td><td><input type="text" name="zipCode"></td></tr>
-          <tr><td>Height:</td><td><input type="text" name="height"></td></tr>
-          <tr><td>Weight:</td><td><input type="text" name="weight"></td></tr>
+        <table style="margin: 0 auto; text-align: center;">
+          <tr><td>First Name:</td><td><input type="text" name="first_name" required></td></tr>
+          <tr><td>Last Name:</td><td><input type="text" name="last_name" required></td></tr>
+          <tr><td>Street:</td><td><input type="text" name="street" required></td></tr>
+          <tr><td>City:</td><td><input type="text" name="city" required></td></tr>
+          <tr><td>State:</td><td><input type="text" name="state" required></td></tr>
+          <tr><td>Country:</td><td><input type="text" name="country" required></td></tr>
+          <tr><td>Zip Code:</td><td><input type="text" name="zipCode" required></td></tr>
+          <tr><td>Height:</td><td><input type="text" name="height" required></td></tr>
+          <tr><td>Weight:</td><td><input type="text" name="weight" required></td></tr>
           <tr>
             <td>Team:</td>
             <td>
@@ -104,12 +111,14 @@ require_once('config.php');
         </table>
       </form>
     </div>
+    <?php endif; ?>
 
+    <?php if ($_SESSION['role_id'] != 1 && $_SESSION['role_id'] == 3 || $_SESSION['role_id'] == 4): ?>
     <!-- Player Stats Form -->
-    <div style="flex: 1; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #fffaf0;">
+    <div style="flex: 1; max-width: 600px; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #fffaf0;">
       <h2 style="text-align:center;">Player Statistics Form</h2>
       <form action="processStatisticUpdate.php" method="post">
-        <table>
+        <table style="margin: 0 auto; text-align: center;">
           <tr>
             <td>Player:</td>
             <td>
@@ -156,7 +165,9 @@ require_once('config.php');
         </table>
       </form>
     </div>
+    <?php endif; ?>
   </div>
+
 
   <!-- Overview Tables -->
   <hr>
@@ -254,6 +265,38 @@ require_once('config.php');
         <td><?= $aces ?></td>
         <td><?= $assists ?></td>
         <td><?= $digs ?></td>
+      </tr>
+    <?php endwhile; ?>
+  </table>
+
+  <hr>
+  <h2 style="text-align:center;">CSUF Players</h2>
+
+  <?php
+    $csufQuery = "SELECT u.first_name, u.last_name, r.name AS role, t.team_name
+                  FROM Users u
+                  JOIN Roles r ON u.role_id = r.role_id
+                  LEFT JOIN Players p ON u.user_id = p.user_id
+                  LEFT JOIN Teams t ON p.team_id = t.team_id
+                  WHERE t.team_name = 'CSUF Titans'
+                  ORDER BY r.role_id, u.last_name";
+    $csufStmt = $db->prepare($csufQuery);
+    $csufStmt->execute();
+    $csufStmt->store_result();
+    $csufStmt->bind_result($fname, $lname, $role, $team);
+  ?>
+
+  <table border="1" cellpadding="5" cellspacing="0" style="margin:auto;">
+    <tr>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Team</th>
+    </tr>
+    <?php while ($csufStmt->fetch()): ?>
+      <tr>
+        <td><?= htmlspecialchars($fname . ' ' . $lname) ?></td>
+        <td><?= htmlspecialchars($role) ?></td>
+        <td><?= htmlspecialchars($team) ?></td>
       </tr>
     <?php endwhile; ?>
   </table>

@@ -1,5 +1,4 @@
 <?php
-// Carlos Lopez
 class PlayerInformation {
 
 // VARIABLES
@@ -16,10 +15,8 @@ class PlayerInformation {
   private $height         = 0;
   private $teamName     = "";
 
-// CONSTRUCT
 
   public function __construct($firstName="", $lastName = "", $street="", $city="", $state="", $country="", $zipCode="", $height="", $weight="", $teamName="") {
-      //$this->name($name);
       $this->firstName($firstName);
       $this->lastName($lastName);
       $this->street($street);
@@ -32,8 +29,6 @@ class PlayerInformation {
       $this->teamName($teamName);
   }
 
-// GETTERS/SETTERS
-
   function name() {
     return $this->lastName().", ".$this->firstName();
   }
@@ -44,7 +39,6 @@ class PlayerInformation {
        return $this->firstName;
      }
      
-     // void pointsScored($value)
      else if( func_num_args() == 1 )
      {
       if (is_string(func_get_arg(0))) {
@@ -60,8 +54,7 @@ class PlayerInformation {
      {
        return $this->lastName;
      }
-     
-     // void pointsScored($value)
+    
      else if( func_num_args() == 1 )
      {
       if (is_string(func_get_arg(0))) {
@@ -138,8 +131,7 @@ class PlayerInformation {
      {
        return $this->weight;
      }
-     
-     // void assists($value)
+    
      else if( func_num_args() == 1 )
      {
        $this->weight = (int)func_get_arg(0);
@@ -154,8 +146,7 @@ class PlayerInformation {
      {
        return $this->height;
      }
-     
-     // void assists($value)
+    
      else if( func_num_args() == 1 )
      {
        $this->height = (int)func_get_arg(0);
