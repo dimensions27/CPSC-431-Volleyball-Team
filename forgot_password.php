@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $update->execute();
 
             // just simulates password sent to email.
-            $message = "A new password has been set. Simulated email: <strong>$newPassword</strong>";
+            $message = "A new password has been set. Here is the password sent through email: <strong>$newPassword</strong>";
         } else {
             $message = "No account found with that email.";
         }
