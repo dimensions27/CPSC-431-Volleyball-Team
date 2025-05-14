@@ -1,5 +1,7 @@
 <?php 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 
 if (!isset($_SESSION['username'])) {
   header("Location: login.php");
@@ -22,8 +24,6 @@ require_once('config.php');
     require_once('PlayerInformation.php');
     require_once('PlayerStatistic.php');
     require_once('Adaptation.php');
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
     @$db = new mysqli(DATA_BASE_HOST, USER_NAME, USER_PASSWORD, DATA_BASE_NAME);
 
     if ($db->connect_errno != 0) {
@@ -71,7 +71,7 @@ require_once('config.php');
     <div style="display: flex; justify-content: center; padding: 20px;">
   <?php endif; ?>
 
-    <?php if ($_SESSION['role_id'] != 1 && $_SESSION['role_id'] == 2 || $_SESSION['role_id'] == 4): ?>
+    <?php if ($_SESSION['role_id'] == 2 || $_SESSION['role_id'] == 4): ?>
     <!-- Player Info Form -->
     <div style="flex: 1; max-width: 600px; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #f0f8ff;">
       <h2 style="text-align:center;">Player Info Form</h2>
